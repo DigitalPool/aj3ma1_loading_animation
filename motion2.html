@@ -1,0 +1,165 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Smooth Crescent Loader (JS Path Animation)</title>
+<style>
+  :root{
+    --green:#2E5E2B; /* your logo green */
+    --gold:#C7A23A;  /* your logo gold  */
+  }
+  html,body{
+    height:100%;
+    margin:0;
+    background:#fff;
+    display:grid;
+    place-items:center;
+  }
+  svg{
+    width:220px;              /* overall size — adjust if needed */
+    height:220px;
+    overflow:visible;
+    cursor:pointer;
+  }
+
+  /* Click/tap shake (retriggered every time via JS) */
+  @keyframes shake {
+    0%,100%{ transform:rotate(0deg); }
+    20%{ transform:rotate(-6deg); }
+    40%{ transform:rotate(6deg); }
+    60%{ transform:rotate(-3deg); }
+    80%{ transform:rotate(3deg); }
+  }
+  .shake {
+    animation: shake .7s cubic-bezier(.36,.07,.19,.97);
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+    nav {
+    position: absolute;
+    top: 18%;
+    left: 50%;
+    transform: translate(-50%, -140px);
+  }
+
+  nav a {
+    text-decoration: none;
+    color: var(--green);
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    padding: 8px 16px;
+    border: 2px solid var(--green);
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    display: inline-block;
+  }
+
+  nav a:hover {
+    background-color: var(--green);
+    color: white;
+    box-shadow: 0 2px 8px rgba(46, 94, 43, 0.3);
+  }
+  
+</style>
+</head>
+<body>
+  <nav>
+    <a href="index.html"> See Ramp</a>
+  </nav>
+
+<!-- ViewBox is 200x200 -->
+<svg id="loader" viewBox="0 0 200 200" aria-label="Loading">
+  <defs>
+    <!-- Clean crescent via mask -->
+    <mask id="crescent-mask">
+      <circle cx="90" cy="100" r="70" fill="white"/>
+      <circle cx="125" cy="88" r="66" fill="black"/>
+    </mask>
+
+    <!-- Motion path: an arc near the outer rim of the crescent.
+         It's a bit inset and trimmed so we NEVER reach the extreme top/bottom. -->
+    <path id="motionPath"
+          d="M 132 54 A 66 66 0 0 1 132 146"
+          fill="none" stroke="none"/>
+  </defs>
+
+  <!-- Group everything so we can shake it -->
+  <g id="system">
+    <!-- Crescent -->
+    <circle cx="90" cy="100" r="70" fill="var(--green)" mask="url(#crescent-mask)"/>
+
+    <!-- Star (centered at 0,0 so we can translate/rotate cleanly) -->
+    <g id="star" fill="var(--gold)" transform="translate(0,0)">
+      <polygon points="0,-16 4.9,-5.2 16,-5.2 7.2,1.6 10,12.8 0,6 -10,12.8 -7.2,1.6 -16,-5.2 -4.9,-5.2"/>
+    </g>
+  </g>
+</svg>
+
+<script>
+(() => {
+  const svg = document.getElementById('loader');
+  const system = document.getElementById('system');
+  const star = document.getElementById('star');
+  const path = document.getElementById('motionPath');
+
+  // Animation settings
+  const duration = 2400;           // ms for down or up (total loop = 4800ms)
+  const startPct = 0.08;           // don't start exactly at path length 0
+  const endPct   = 0.92;           // don't end exactly at path length 1
+  const L = path.getTotalLength();
+  const startLen = L * startPct;
+  const endLen   = L * endPct;
+  const travel   = endLen - startLen;
+
+  // Easing (smooth in/out)
+  const easeInOut = t => (t < 0.5)
+    ? 4 * t * t * t
+    : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+  let startTime = performance.now();
+
+  function render(now) {
+    const elapsed = (now - startTime) % (duration * 2); // ping-pong
+    const goingDown = elapsed < duration;
+    const tRaw = (elapsed % duration) / duration;       // 0..1
+    const t = easeInOut(tRaw);
+
+    // Distance along path — trimmed so we never slam into endpoints
+    let d = startLen + travel * t;
+    if (!goingDown) {
+      d = endLen - travel * t; // reverse
+    }
+
+    // Position on path
+    const pt = path.getPointAtLength(d);
+
+    // Tangent for rotation (look slightly ahead)
+    const delta = 0.5; // small step for tangent
+    const p2 = path.getPointAtLength(Math.min(d + delta, L));
+    const angle = Math.atan2(p2.y - pt.y, p2.x - pt.x) * 180 / Math.PI;
+
+    // Apply transform (translate to path point, rotate star along tangent)
+    star.setAttribute('transform', `translate(${pt.x},${pt.y}) rotate(${angle})`);
+
+    requestAnimationFrame(render);
+  }
+
+  requestAnimationFrame(render);
+
+  // Shake on every click (guaranteed re-trigger)
+  svg.addEventListener('click', () => {
+    system.classList.remove('shake');
+    // force reflow to allow re-adding the class
+    void system.getBoundingClientRect();
+    system.classList.add('shake');
+  });
+})();
+</script>
+
+</body>
+</html>
