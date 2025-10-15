@@ -66,11 +66,22 @@
     box-shadow: 0 2px 8px rgba(46, 94, 43, 0.3);
   }
 
+  nav {
+    display: flex;
+    gap: 15px;
+  }
+
+  nav a.disabled {
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
 </style>
 </head>
 <body>
   <nav>
-    <a href="index.html"> See Ramp</a>
+    <a href="index.html">Previous</a>
+    <a href="motion3.html">Next</a>
   </nav>
 
 <!-- ViewBox is 200x200 -->

@@ -76,8 +76,8 @@
 <body>
 
 <nav>
-  <a href="#" class="disabled">Previous</a>
-  <a href="motion2.html">Next</a>
+  <a href="motion2.html">Previous</a>
+  <a href="#" class="disabled">Next</a>
 </nav>
 
 <svg id="loader" viewBox="0 0 200 200">
@@ -85,21 +85,17 @@
     <!-- Crescent moon mask -->
     <mask id="crescent-mask">
       <circle cx="90" cy="100" r="70" fill="white"/>
-      <circle cx="125" cy="95" r="66" fill="black"/>
+      <circle cx="125" cy="88" r="66" fill="black"/>
     </mask>
 
-    <!-- Complete oval path following the crescent's inner edge -->
-    <path id="ovalPath"
-          d="M 98 55
-             C 70 70, 60 100, 70 130
-             C 75 145, 85 155, 98 155
-             C 115 155, 128 140, 132 120
-             C 135 100, 130 75, 115 60
-             C 108 55, 103 53, 98 55 Z"
+    <!-- Inner curved path (hugging the inside of the crescent) -->
+    <path id="innerPath"
+          d="M 95 60
+             Q 40 100, 115 140"
           fill="none" stroke="none"/>
   </defs>
 
-  <g id="system" transform="rotate(-45 100 100)">
+  <g id="system">
     <!-- Crescent moon -->
     <circle cx="90" cy="100" r="70" fill="var(--green)" mask="url(#crescent-mask)"/>
 
@@ -115,10 +111,13 @@
   const svg = document.getElementById('loader');
   const system = document.getElementById('system');
   const star = document.getElementById('star');
-  const ovalPath = document.getElementById('ovalPath');
+  const path = document.getElementById('innerPath');
 
-  const duration = 5000; // ms for complete oval loop
-  const pathLength = ovalPath.getTotalLength();
+  const duration = 2400; // ms for one down/up motion
+  const L = path.getTotalLength();
+  const startLen = L * 0.02;
+  const endLen = L * 0.98;
+  const travel = endLen - startLen;
 
   const easeInOut = t => (t < 0.5)
     ? 4 * t * t * t
@@ -127,17 +126,19 @@
   let startTime = performance.now();
 
   function render(now) {
-    const elapsed = (now - startTime) % duration;
-    const tRaw = elapsed / duration;
+    const elapsed = (now - startTime) % (duration * 2);
+    const goingDown = elapsed < duration;
+    const tRaw = (elapsed % duration) / duration;
     const t = easeInOut(tRaw);
-    
-    // Follow the continuous oval path
-    const d = pathLength * t;
-    const pt = ovalPath.getPointAtLength(d);
-    const p2 = ovalPath.getPointAtLength((d + 0.5) % pathLength);
+    let d = goingDown
+      ? startLen + travel * t
+      : endLen - travel * t;
+
+    const pt = path.getPointAtLength(d);
+    const p2 = path.getPointAtLength(Math.min(d + 0.5, L));
     const angle = Math.atan2(p2.y - pt.y, p2.x - pt.x) * 180 / Math.PI;
 
-    // Move the star along the oval path
+    // Move the star along the inner path
     star.setAttribute('transform', `translate(${pt.x},${pt.y}) rotate(${angle})`);
 
     requestAnimationFrame(render);
