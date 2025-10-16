@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Inner Crescent Ramp Loader</title>
+<style>
+  :root{
+    --green:#2E5E2B; /* moon color */
+    --gold:#C7A23A;  /* star color */
+  }
+
+  html,body{
+    height:100%;
+    margin:0;
+    background:#fff;
+    display:grid;
+    place-items:center;
+  }
+
+  svg{
+    width:220px;
+    height:220px;
+    cursor:pointer;
+    overflow:visible;
+  }
+
+  /* Shake animation */
+  @keyframes shake {
+    0%,100% { transform:rotate(0deg); }
+    20% { transform:rotate(-6deg); }
+    40% { transform:rotate(6deg); }
+    60% { transform:rotate(-3deg); }
+    80% { transform:rotate(3deg); }
+  }
+  .shake {
+    animation: shake 0.7s cubic-bezier(.36,.07,.19,.97);
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  nav {
+    position: absolute;
+    top: 18%;
+    margin-top: 50px;
+    left: 50%;
+    transform: translate(-50%, -140px);
+    display: flex;
+    gap: 15px;
+  }
+
+  nav a {
+    text-decoration: none;
+    color: var(--green);
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    padding: 8px 16px;
+    border: 2px solid var(--green);
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    display: inline-block;
+  }
+
+  nav a:hover {
+    background-color: var(--green);
+    color: white;
+    box-shadow: 0 2px 8px rgba(46, 94, 43, 0.3);
+  }
+
+  nav a.disabled {
+    opacity: 0.3;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <!-- <a href="./index.html">Previous</a> -->
+  <a href="index.html">refined</a>
+</nav>
+
+<svg id="loader" viewBox="0 0 200 200">
+  <defs>
+    <!-- Crescent moon mask -->
+    <mask id="crescent-mask">
+      <circle cx="90" cy="100" r="70" fill="white"/>
+      <circle cx="125" cy="95" r="66" fill="black"/>
+    </mask>
+
+    <!-- Complete oval path following the crescent's inner edge -->
+    <path id="ovalPath"
+          d="M 98 55
+             C 70 70, 60 100, 70 130
+             C 75 145, 85 155, 98 155
+             C 115 155, 128 140, 132 120
+             C 135 100, 130 75, 115 60
+             C 108 55, 103 53, 98 55 Z"
+          fill="none" stroke="none"/>
+  </defs>
+
+  <g id="system" transform="rotate(-45 100 100)">
+    <!-- Crescent moon -->
+    <circle cx="90" cy="100" r="70" fill="var(--green)" mask="url(#crescent-mask)"/>
+
+    <!-- Rolling star -->
+    <g id="star" fill="var(--gold)">
+      <polygon points="0,-14 4.5,-5 14,-5 6,1.5 8.5,11.5 0,5 -8.5,11.5 -6,1.5 -14,-5 -4.5,-5"/>
+    </g>
+  </g>
+</svg>
+
+<script>
+(() => {
+  const svg = document.getElementById('loader');
+  const system = document.getElementById('system');
+  const star = document.getElementById('star');
+  const ovalPath = document.getElementById('ovalPath');
+
+  const duration = 5000; // ms for complete oval loop
+  const pathLength = ovalPath.getTotalLength();
+
+  const easeInOut = t => (t < 0.5)
+    ? 4 * t * t * t
+    : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+  let startTime = performance.now();
+
+  function render(now) {
+    const elapsed = (now - startTime) % duration;
+    const tRaw = elapsed / duration;
+    const t = easeInOut(tRaw);
+    
+    // Follow the continuous oval path
+    const d = pathLength * t;
+    const pt = ovalPath.getPointAtLength(d);
+    const p2 = ovalPath.getPointAtLength((d + 0.5) % pathLength);
+    const angle = Math.atan2(p2.y - pt.y, p2.x - pt.x) * 180 / Math.PI;
+
+    // Move the star along the oval path
+    star.setAttribute('transform', `translate(${pt.x},${pt.y}) rotate(${angle})`);
+
+    requestAnimationFrame(render);
+  }
+
+  requestAnimationFrame(render);
+
+  // Shake moon on click
+  svg.addEventListener('click', () => {
+    system.classList.remove('shake');
+    void system.getBoundingClientRect(); // force reflow
+    system.classList.add('shake');
+  });
+})();
+</script>
+
+</body>
+</html>
+

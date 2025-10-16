@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>aj3ma1_loading_ae Preview</title>
   <style>
+    :root {
+      --green: #2e5e2b;
+    }
+
     html, body {
       height: 100%;
       margin: 0;
@@ -12,15 +16,53 @@
       display: grid;
       place-items: center;
     }
+
     #lottie {
       width: min(90vw, 960px);
       aspect-ratio: 16 / 9;
+      border-radius: 20px;     /* rounded corners */
+      overflow: hidden;        /* clip animation to rounded corners */
+    }
+
+    nav {
+      position: absolute;
+      top: 18%;
+      left: 50%;
+      transform: translate(-50%, -140px);
+      display: flex;
+      gap: 15px;
+      background: wheat;
+      border-radius: 20px;     /* rounded corners */
+    }
+
+    nav a {
+      text-decoration: none;
+      color: var(--green);
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+      padding: 8px 16px;
+      border: 2px solid var(--green);
+      border-radius: 20px;     /* rounded corners */
+      transition: all 0.3s ease;
+      display: inline-block;
+    }
+
+    nav a:hover {
+      background-color: var(--green);
+      color: white;
+      box-shadow: 0 2px 8px rgba(46, 94, 43, 0.3);
     }
   </style>
   <!-- Load Lottie-Web -->
   <script src="https://unpkg.com/lottie-web@5.12.2/build/player/lottie.min.js"></script>
 </head>
 <body>
+<nav>
+  <!-- <a href="./index.html">Previous</a> -->
+  <a href="motion_1.html">previous</a>
+</nav>
+
+
   <div id="lottie"></div>
 
   <!-- Embed your Lottie JSON -->
